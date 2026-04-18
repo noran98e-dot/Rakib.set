@@ -1,1 +1,523 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق راكب - الأردن</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            overflow: hidden; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* ألوان كريم / راكب المخصصة */
+        .bg-careem { background-color: #00C853; }
+        .text-careem { color: #00C853; }
+        .border-careem { border-color: #00C853; }
+        
+        /* إخفاء آمن لتجنب تعارض الـ Tailwind */
+        .hidden-safe { display: none !important; }
+        
+        /* تأثيرات حركية */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .animate-radar { animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+        .animate-radar-delayed { animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite 0.5s; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 w-full h-screen relative">
 
+    <!-- 1. التنبيهات العائمة -->
+    <div id="notif-overlay" class="fixed top-12 left-4 right-4 z-[100] transition-transform duration-300 -translate-y-40">
+        <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center gap-3 border-l-4 border-careem">
+            <i data-lucide="shield-check" class="text-careem w-5 h-5"></i>
+            <p id="notif-text" class="text-xs font-black"></p>
+        </div>
+    </div>
+
+    <!-- 2. شاشة الترحيب -->
+    <div id="view-welcome" class="absolute inset-0 bg-white flex flex-col z-50">
+        <div class="absolute top-0 right-0 w-full h-1/2 bg-slate-50 rounded-b-[4rem] -z-10"></div>
+        <div class="flex-1 flex flex-col justify-center p-8 text-center">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Crown_of_Jordan.svg/1200px-Crown_of_Jordan.svg.png" class="w-16 h-auto mx-auto mb-8 drop-shadow-md" alt="التاج الملكي">
+            <h1 class="text-5xl font-black text-slate-800 tracking-tight mb-2">راكب</h1>
+            <p class="text-slate-500 font-bold mb-12">التطبيق الوطني الأول للتنقل في المفرق</p>
+            
+            <button onclick="gotoRegistration('passenger')" class="w-full py-5 rounded-2xl text-white font-black text-xl shadow-lg flex items-center justify-center gap-3 bg-careem mb-4 active:scale-95 transition-transform">
+                المتابعة كراكب
+            </button>
+            <button onclick="gotoRegistration('driver')" class="w-full py-5 rounded-2xl bg-white text-slate-800 font-black text-xl shadow-sm border border-slate-200 flex items-center justify-center gap-3 active:scale-95 transition-transform">
+                تسجيل دخول كابتن
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. شاشة التسجيل -->
+    <div id="view-registration" class="absolute inset-0 bg-white flex flex-col z-50 hidden-safe">
+        <div class="absolute top-0 right-0 w-full h-1/2 bg-slate-50 rounded-b-[4rem] -z-10"></div>
+        <div class="flex-1 flex flex-col justify-center p-8">
+            <button onclick="showView('welcome')" class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mb-8 active:scale-90 transition-transform">
+                <i data-lucide="chevron-left" class="rotate-180 text-slate-600 w-5 h-5"></i>
+            </button>
+            <h2 id="reg-title" class="text-3xl font-black text-slate-800 mb-2">أدخل رقمك الوطني</h2>
+            <p class="text-slate-500 font-bold mb-8 text-sm">لضمان أمان وسلامة رحلاتك معنا</p>
+            
+            <div class="space-y-6">
+                <!-- حقل الرقم الوطني -->
+                <div class="relative">
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 border-l pl-3 border-slate-200">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/Flag_of_Jordan.svg/20px-Flag_of_Jordan.svg.png" alt="JO" class="w-5 rounded-sm">
+                        <span class="font-black text-slate-800 text-sm" dir="ltr">+962</span>
+                    </div>
+                    <input type="tel" class="w-full bg-slate-50 border border-slate-200 p-5 pr-28 rounded-2xl font-black text-lg outline-none focus:border-[#00C853] transition-colors" placeholder="7X XXX XXXX" dir="ltr">
+                </div>
+                
+                <!-- حقل الرقم السري -->
+                <div class="relative">
+                    <i data-lucide="shield-check" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"></i>
+                    <input type="password" placeholder="الرقم السري" class="w-full bg-slate-50 border border-slate-200 p-5 pr-12 rounded-2xl font-black text-lg outline-none focus:border-[#00C853] transition-colors text-right">
+                </div>
+
+                <div class="flex items-center justify-center gap-4 py-4">
+                    <div class="h-[1px] flex-1 bg-slate-200"></div>
+                    <span class="text-xs font-bold text-slate-400">أو الدخول السريع</span>
+                    <div class="h-[1px] flex-1 bg-slate-200"></div>
+                </div>
+
+                <!-- بصمة -->
+                <button onclick="triggerNotification('تم التحقق من البصمة')" class="w-full py-4 rounded-2xl border border-slate-200 flex items-center justify-center gap-3 font-black text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition-colors">
+                    <i data-lucide="fingerprint" class="text-careem w-6 h-6"></i> دخول بالبصمة
+                </button>
+
+                <!-- دخول -->
+                <button onclick="login()" class="w-full py-5 rounded-2xl text-white font-black text-xl shadow-lg mt-4 bg-careem active:scale-95 transition-transform">
+                    تأكيد الدخول
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. الشاشة الرئيسية (الخريطة + لوحات التحكم) -->
+    <div id="view-dashboard" class="absolute inset-0 flex flex-col z-40 hidden-safe">
+        
+        <!-- خريطة الخلفية -->
+        <div class="absolute inset-0 z-0">
+            <img src="https://www.mapquest.com/mq/maps/map/13/4985/3313.jpeg" class="w-full h-full object-cover opacity-80 mix-blend-multiply" alt="Map">
+            <div class="absolute inset-0 bg-black/5 pointer-events-none"></div>
+            
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center">
+                <div id="map-label" class="bg-slate-900 text-white px-3 py-1.5 rounded-full text-[10px] font-black mb-2 shadow-lg">موقعك الحالي</div>
+                <div id="map-dot" class="w-10 h-10 rounded-full border-4 border-white shadow-xl flex items-center justify-center animate-bounce bg-blue-500">
+                    <!-- أيقونات تتغير حسب نوع المستخدم -->
+                    <div id="icon-user" class="text-white hidden-safe"><i data-lucide="user" class="w-5 h-5"></i></div>
+                    <div id="icon-bus" class="text-white hidden-safe"><i data-lucide="bus" class="w-5 h-5"></i></div>
+                    <div id="icon-car" class="text-white hidden-safe"><i data-lucide="car-front" class="w-5 h-5"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- الأزرار العلوية العائمة -->
+        <div class="absolute top-12 left-0 right-0 px-4 flex justify-between items-start z-40 pointer-events-none">
+            <!-- زر الخروج -->
+            <button onclick="logout()" class="w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center pointer-events-auto text-red-500 active:scale-90 transition-transform">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+            
+            <!-- رصيد الكابتن -->
+            <div id="driver-balance-badge" class="bg-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 pointer-events-auto hidden-safe">
+                <span class="font-black text-sm text-slate-800">5.20 د.أ</span>
+                <i data-lucide="wallet" class="text-careem w-4 h-4"></i>
+            </div>
+        </div>
+
+        <!-- أ. لوحة تحكم الراكب -->
+        <div id="passenger-overlay" class="absolute bottom-0 w-full bg-white rounded-t-[2.5rem] shadow-[0_-15px_40px_rgba(0,0,0,0.15)] z-40 p-6 transition-all duration-500 hidden-safe">
+            <div id="pass-handle" class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            
+            <!-- خطوة 1: اختيار الخدمة -->
+            <div id="pass-step-1" class="fade-in space-y-6">
+                <h2 class="text-2xl font-black text-slate-800 text-center mb-6">إلى أين وجهتك يا نشمي؟</h2>
+                
+                <div class="flex gap-2 mb-4">
+                    <button onclick="setRideType('bus')" id="btn-type-bus" class="flex-1 py-4 rounded-2xl border-2 border-careem bg-green-50 font-black text-sm text-green-700 transition-all flex flex-col items-center gap-2">
+                        <i data-lucide="bus" class="w-6 h-6"></i>
+                        <span>باص (0.50 د.أ)</span>
+                    </button>
+                    <button onclick="setRideType('service')" id="btn-type-service" class="flex-1 py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 font-black text-sm text-slate-500 transition-all flex flex-col items-center gap-2">
+                        <i data-lucide="car-front" class="w-6 h-6"></i>
+                        <span>سرفيس (0.60 د.أ)</span>
+                    </button>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl flex justify-between items-center mb-6 border border-slate-100">
+                    <span class="font-black text-slate-700">المقاعد المطلوبة</span>
+                    <div class="flex items-center gap-4 bg-white p-2 rounded-xl shadow-sm">
+                        <button onclick="updateSeats(-1)" class="p-2 text-slate-400 active:scale-90"><i data-lucide="minus" class="w-5 h-5"></i></button>
+                        <span id="seat-count" class="font-black text-xl w-4 text-center">1</span>
+                        <button onclick="updateSeats(1)" class="p-2 text-slate-800 active:scale-90"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                    </div>
+                </div>
+
+                <button onclick="startSearch()" class="w-full py-5 rounded-[2rem] text-white font-black text-xl shadow-xl flex items-center justify-center gap-3 bg-careem active:scale-95 transition-transform">
+                    يلا راكب - تأكيد الحجز
+                </button>
+            </div>
+
+            <!-- خطوة 2: رادار البحث -->
+            <div id="pass-step-2" class="fade-in hidden-safe flex flex-col items-center justify-center py-10 min-h-[50vh]">
+                <div class="relative w-32 h-32 flex items-center justify-center mb-8">
+                    <div class="absolute inset-0 rounded-full border-4 border-careem animate-radar"></div>
+                    <div class="absolute inset-4 rounded-full border-4 border-careem animate-radar-delayed"></div>
+                    <div class="w-16 h-16 rounded-full bg-careem flex items-center justify-center text-white shadow-xl z-10">
+                        <i data-lucide="search" class="w-8 h-8"></i>
+                    </div>
+                </div>
+                <h2 class="text-2xl font-black text-slate-800 mb-2">جاري البحث عن كابتن...</h2>
+                <button onclick="cancelRide()" class="mt-8 text-slate-400 font-bold underline">إلغاء البحث</button>
+            </div>
+
+            <!-- خطوة 3: التذكرة والكابتن -->
+            <div id="pass-step-3" class="fade-in hidden-safe space-y-4">
+                <div class="text-center mb-4">
+                    <h2 class="text-3xl font-black text-slate-800">4 <span class="text-lg">دقائق</span></h2>
+                    <p class="text-xs font-bold text-slate-500">للوصول إليك</p>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-3xl border border-slate-100 flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 bg-slate-200 rounded-2xl flex items-center justify-center"><i data-lucide="user" class="w-8 h-8 text-slate-400"></i></div>
+                        <div>
+                            <h3 class="font-black text-slate-800 text-lg">أحمد الحراحشة</h3>
+                            <p class="text-[10px] font-bold text-slate-500">4.9 ⭐ • 245 رحلة</p>
+                        </div>
+                    </div>
+                    <div class="bg-white border-2 border-slate-200 px-3 py-1 rounded-lg shadow-sm text-center">
+                        <span class="font-black text-slate-800 block text-xs tracking-widest">70-1234</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-3xl text-white flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-white/10 rounded-2xl"><i data-lucide="qr-code" class="w-7 h-7"></i></div>
+                        <div>
+                            <p class="text-[10px] opacity-70 font-bold">تذكرتك الرقمية</p>
+                            <p class="font-black">أبرز الكود عند الصعود</p>
+                        </div>
+                    </div>
+                    <span id="ticket-total" class="font-black text-xl text-green-400">0.50 د.أ</span>
+                </div>
+                
+                <button onclick="cancelRide()" class="w-full py-4 mt-2 bg-slate-100 text-slate-500 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-500 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i> إلغاء الرحلة
+                </button>
+            </div>
+        </div>
+
+        <!-- ب. لوحة تحكم السائق -->
+        <div id="driver-overlay" class="absolute inset-0 z-30 pointer-events-none flex flex-col justify-end pb-8 hidden-safe">
+            <div class="px-4 pointer-events-auto">
+                
+                <!-- نافذة طلب جديد -->
+                <div id="driver-request" class="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl mb-4 hidden-safe transition-transform fade-in">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <span class="bg-green-500 text-slate-900 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-2 inline-block">طلب جديد</span>
+                            <h3 class="text-xl font-black">محمد عبدالله</h3>
+                            <p class="text-xs text-slate-400 mt-1 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> نقطة تجمع: دوار الدلة</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="acceptRequest()" class="flex-1 py-4 rounded-2xl font-black text-lg text-slate-900 shadow-lg bg-careem active:scale-95 transition-transform">
+                            قبول الطلب
+                        </button>
+                        <button onclick="rejectRequest()" class="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center text-white hover:bg-red-500 transition-colors">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- اللوحة السفلية -->
+                <div class="bg-white rounded-[3rem] shadow-[0_-15px_40px_rgba(0,0,0,0.1)] p-6">
+                    
+                    <!-- حالة الأوفلاين -->
+                    <div id="driver-offline" class="text-center space-y-6 fade-in">
+                        <div class="w-16 h-1.5 bg-slate-200 rounded-full mx-auto mb-2"></div>
+                        <h2 class="text-2xl font-black text-slate-800">جاهز للعمل يا كابتن؟</h2>
+                        
+                        <div class="flex bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                            <button onclick="setDriverVehicle('bus')" id="btn-d-bus" class="flex-1 py-3 rounded-xl font-black text-sm bg-white shadow-sm text-slate-800 transition-all">باص (0.50)</button>
+                            <button onclick="setDriverVehicle('service')" id="btn-d-service" class="flex-1 py-3 rounded-xl font-black text-sm text-slate-400 transition-all">سرفيس (0.60)</button>
+                        </div>
+                        
+                        <button onclick="goOnline()" class="w-full py-5 rounded-[2rem] text-white font-black text-xl shadow-xl flex items-center justify-center gap-3 bg-careem active:scale-95 transition-transform">
+                            <i data-lucide="power" class="w-6 h-6"></i> ابدأ استقبال الركاب
+                        </button>
+                    </div>
+
+                    <!-- حالة الأونلاين -->
+                    <div id="driver-online" class="space-y-6 hidden-safe fade-in">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-6">
+                            <div class="text-right">
+                                <p class="text-[10px] font-black text-slate-400 mb-1">المقاعد المحجوزة</p>
+                                <h3 class="text-3xl font-black text-slate-800"><span id="d-booked">0</span> <span class="text-sm text-slate-300">/ <span id="d-total">22</span></span></h3>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-[10px] font-black text-slate-400 mb-1">الأرباح اليوم</p>
+                                <h3 class="text-3xl font-black text-green-600"><span id="d-earnings">0.00</span><span class="text-sm">د.أ</span></h3>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="goOffline()" class="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0 active:scale-90 transition-transform">
+                                <i data-lucide="power" class="w-6 h-6"></i>
+                            </button>
+                            <button onclick="declareFull()" class="flex-1 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2">
+                                إعلان الامتلاء (Full)
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // تهيئة الأيقونات
+        lucide.createIcons();
+
+        // المتغيرات وحالة التطبيق
+        let state = {
+            view: 'welcome',
+            userType: null,
+            
+            // بيانات الراكب
+            rideType: 'bus', 
+            seatsToBook: 1,
+            
+            // بيانات الكابتن
+            isOnline: false,
+            driverCategory: 'bus',
+            bookedSeats: 0,
+            
+            // الأسعار والسعة
+            prices: { bus: 0.50, service: 0.60 },
+            capacity: { bus: 22, service: 4 }
+        };
+
+        const helpers = {
+            get: id => document.getElementById(id),
+            show: id => document.getElementById(id)?.classList.remove('hidden-safe'),
+            hide: id => document.getElementById(id)?.classList.add('hidden-safe')
+        };
+
+        // نظام التنبيهات
+        function triggerNotification(msg) {
+            const overlay = helpers.get('notif-overlay');
+            helpers.get('notif-text').innerText = msg;
+            overlay.classList.remove('-translate-y-40');
+            setTimeout(() => overlay.classList.add('-translate-y-40'), 3500);
+        }
+
+        // التنقل بين الشاشات
+        function showView(viewId) {
+            state.view = viewId;
+            ['view-welcome', 'view-registration', 'view-dashboard'].forEach(id => helpers.hide(id));
+            helpers.show(`view-${viewId}`);
+        }
+
+        function gotoRegistration(type) {
+            state.userType = type;
+            helpers.get('reg-title').innerText = type === 'driver' ? 'دخول الكابتن' : 'أدخل رقمك الوطني';
+            showView('registration');
+        }
+
+        function login() {
+            showView('dashboard');
+            
+            if (state.userType === 'passenger') {
+                helpers.show('passenger-overlay');
+                helpers.hide('driver-overlay');
+                helpers.hide('driver-balance-badge');
+                
+                helpers.get('map-label').innerText = 'موقعك الحالي (راكب)';
+                helpers.get('map-dot').className = "w-10 h-10 rounded-full border-4 border-white shadow-xl flex items-center justify-center animate-bounce bg-blue-500";
+                helpers.show('icon-user');
+                helpers.hide('icon-bus');
+                helpers.hide('icon-car');
+                
+                // إعادة تهيئة حجز الراكب
+                helpers.show('pass-step-1');
+                helpers.hide('pass-step-2');
+                helpers.hide('pass-step-3');
+                setRideType('bus');
+                helpers.get('pass-handle').classList.remove('hidden-safe');
+                helpers.get('passenger-overlay').classList.remove('h-full', 'rounded-t-none');
+                
+            } else {
+                helpers.show('driver-overlay');
+                helpers.hide('passenger-overlay');
+                helpers.show('driver-balance-badge');
+                
+                helpers.get('map-label').innerText = 'موقعك الحالي (كابتن)';
+                helpers.get('map-dot').className = "w-10 h-10 rounded-full border-4 border-white shadow-xl flex items-center justify-center animate-bounce bg-green-500";
+                setDriverVehicle('bus');
+                goOffline();
+            }
+        }
+
+        function logout() {
+            showView('welcome');
+            state.userType = null;
+        }
+
+        // -----------------------
+        // وظائف الراكب
+        // -----------------------
+        function setRideType(type) {
+            state.rideType = type;
+            const busBtn = helpers.get('btn-type-bus');
+            const srvBtn = helpers.get('btn-type-service');
+            
+            const activeClass = "flex-1 py-4 rounded-2xl border-2 border-careem bg-green-50 font-black text-sm text-green-700 transition-all flex flex-col items-center gap-2";
+            const inactiveClass = "flex-1 py-4 rounded-2xl border-2 border-slate-100 bg-slate-50 font-black text-sm text-slate-500 transition-all flex flex-col items-center gap-2";
+            
+            if(type === 'bus') {
+                busBtn.className = activeClass;
+                srvBtn.className = inactiveClass;
+            } else {
+                srvBtn.className = activeClass;
+                busBtn.className = inactiveClass;
+            }
+        }
+
+        function updateSeats(change) {
+            let newSeats = state.seatsToBook + change;
+            if(newSeats >= 1 && newSeats <= 5) {
+                state.seatsToBook = newSeats;
+                helpers.get('seat-count').innerText = newSeats;
+            }
+        }
+
+        function startSearch() {
+            helpers.hide('pass-step-1');
+            helpers.get('pass-handle').classList.add('hidden-safe');
+            helpers.get('passenger-overlay').classList.add('h-full', 'rounded-t-none');
+            helpers.show('pass-step-2');
+            
+            setTimeout(() => {
+                helpers.hide('pass-step-2');
+                helpers.show('pass-step-3');
+                const total = (state.seatsToBook * state.prices[state.rideType]).toFixed(2);
+                helpers.get('ticket-total').innerText = `${total} د.أ`;
+                triggerNotification("تم إيجاد كابتن! هو في طريقه إليك الآن.");
+            }, 3000);
+        }
+
+        function cancelRide() {
+            helpers.hide('pass-step-3');
+            helpers.hide('pass-step-2');
+            helpers.show('pass-step-1');
+            helpers.get('pass-handle').classList.remove('hidden-safe');
+            helpers.get('passenger-overlay').classList.remove('h-full', 'rounded-t-none');
+            triggerNotification("تم إلغاء الرحلة بنجاح");
+        }
+
+        // -----------------------
+        // وظائف الكابتن
+        // -----------------------
+        function setDriverVehicle(type) {
+            state.driverCategory = type;
+            const busBtn = helpers.get('btn-d-bus');
+            const srvBtn = helpers.get('btn-d-service');
+            
+            const activeClass = "flex-1 py-3 rounded-xl font-black text-sm bg-white shadow-sm text-slate-800 transition-all";
+            const inactiveClass = "flex-1 py-3 rounded-xl font-black text-sm text-slate-400 transition-all";
+
+            helpers.hide('icon-user');
+            helpers.hide('icon-bus');
+            helpers.hide('icon-car');
+
+            if(type === 'bus') {
+                busBtn.className = activeClass;
+                srvBtn.className = inactiveClass;
+                helpers.show('icon-bus');
+            } else {
+                srvBtn.className = activeClass;
+                busBtn.className = inactiveClass;
+                helpers.show('icon-car');
+            }
+        }
+
+        let requestTimeout;
+        function goOnline() {
+            state.isOnline = true;
+            helpers.hide('driver-offline');
+            helpers.show('driver-online');
+            
+            helpers.get('d-total').innerText = state.capacity[state.driverCategory];
+            updateDriverStats();
+            
+            triggerNotification(`أنت الآن أونلاين - التسعيرة: ${state.prices[state.driverCategory].toFixed(2)} د.أ`);
+            
+            requestTimeout = setTimeout(() => {
+                if(state.isOnline) helpers.show('driver-request');
+            }, 4000);
+        }
+
+        function goOffline() {
+            state.isOnline = false;
+            state.bookedSeats = 0;
+            helpers.hide('driver-online');
+            helpers.hide('driver-request');
+            helpers.show('driver-offline');
+            clearTimeout(requestTimeout);
+        }
+
+        function updateDriverStats() {
+            helpers.get('d-booked').innerText = state.bookedSeats;
+            const earnings = (state.bookedSeats * state.prices[state.driverCategory]).toFixed(2);
+            helpers.get('d-earnings').innerText = earnings;
+        }
+
+        function acceptRequest() {
+            if(state.bookedSeats < state.capacity[state.driverCategory]) {
+                state.bookedSeats += 1;
+                helpers.hide('driver-request');
+                updateDriverStats();
+                triggerNotification("تم قبول الراكب وتوجيهك إليه");
+            } else {
+                triggerNotification("المركبة ممتلئة، لا يمكن إضافة المزيد!");
+            }
+        }
+
+        function rejectRequest() {
+            helpers.hide('driver-request');
+        }
+
+        function declareFull() {
+            state.bookedSeats = state.capacity[state.driverCategory];
+            updateDriverStats();
+            triggerNotification("المركبة ممتلئة، تم إيقاف استقبال الطلبات تلقائياً");
+            helpers.hide('driver-request');
+        }
+    </script>
+</body>
+</html>
